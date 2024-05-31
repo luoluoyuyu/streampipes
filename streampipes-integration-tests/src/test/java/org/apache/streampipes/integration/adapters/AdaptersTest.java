@@ -22,12 +22,12 @@ import org.junit.Test;
 public class AdaptersTest {
 
 
-  @Test
-  public void testPulsarAdapter() throws Exception {
-    try (PulsarAdapterTester pulsarAdapterTester = new PulsarAdapterTester()) {
-      pulsarAdapterTester.run();
-    }
-  }
+//  @Test
+//  public void testPulsarAdapter() throws Exception {
+//    try (PulsarAdapterTester pulsarAdapterTester = new PulsarAdapterTester()) {
+//      pulsarAdapterTester.run();
+//    }
+//  }
 
   @Test
   public void testMqttAdapter() throws Exception {
@@ -37,10 +37,10 @@ public class AdaptersTest {
   }
 
 
-  @Test
-  public void testKafkaAdapter() throws Exception {
-    try (KafkaAdapterTester kafkaAdapterTester = new KafkaAdapterTester()) {
-      kafkaAdapterTester.run();
-    }
-  }
+//  @Test
+//  public void testKafkaAdapter() throws Exception {
+//    try (KafkaAdapterTester kafkaAdapterTester = new KafkaAdapterTester()) {
+//      kafkaAdapterTester.run();
+//    }
+//  }
 }

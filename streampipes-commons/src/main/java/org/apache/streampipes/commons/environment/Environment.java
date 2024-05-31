@@ -18,9 +18,7 @@
 
 package org.apache.streampipes.commons.environment;
 
-import org.apache.streampipes.commons.environment.variable.BooleanEnvironmentVariable;
-import org.apache.streampipes.commons.environment.variable.IntEnvironmentVariable;
-import org.apache.streampipes.commons.environment.variable.StringEnvironmentVariable;
+import org.apache.streampipes.commons.environment.variable.*;
 
 public interface Environment {
 
@@ -134,5 +132,20 @@ public interface Environment {
   IntEnvironmentVariable getNatsPort();
 
   StringEnvironmentVariable getPulsarUrl();
+
+  DoubleEnvironmentVariable getCpuResourceWeight();
+  DoubleEnvironmentVariable getMemoryResourceWeight();
+
+  DoubleEnvironmentVariable getDirMemoryResourceWeight();
+  DoubleEnvironmentVariable getBandwidthInResourceWeight();
+  DoubleEnvironmentVariable getBandwidthOutResourceWeight();
+  FloatEnvironmentVariable getThresholdMigratorPercentage();
+  FloatEnvironmentVariable getMinMigratorPercentage();
+  FloatEnvironmentVariable getOverloadedThresholdPercentage();
+  FloatEnvironmentVariable getHistoryResourcePercentage();
+  IntEnvironmentVariable getMsgRateDifferenceMigratorThreshold();
+  FloatEnvironmentVariable getLoadTargetStd();
+  StringEnvironmentVariable getSelector();
+  StringEnvironmentVariable getMigrator();
 
 }

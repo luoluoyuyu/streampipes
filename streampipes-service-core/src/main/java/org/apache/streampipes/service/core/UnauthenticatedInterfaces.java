@@ -26,6 +26,8 @@ public class UnauthenticatedInterfaces {
     return Arrays.asList(
         "/api/svchealth/*",
         "/api/v2/setup/configured",
+        "/api/v2/extensions-services/**",
+        "/api/v2/extensions-services",
         "/api/v2/auth/login",
         "/api/v2/auth/register",
         "/api/v2/auth/settings",

@@ -136,6 +136,7 @@ public class MigrationResource extends AbstractAuthGuardedRestResource {
           .applyServiceStatus(extensionsServiceConfig.getSvcId(), SpServiceStatus.HEALTHY);
       return ok();
     } catch (IllegalArgumentException e) {
+      e.printStackTrace();
       LOG.warn("Refusing migration request since the service {} is not registered.", serviceId);
       throw new SpMessageException(org.springframework.http.HttpStatus.NOT_FOUND, e);
     }

@@ -258,9 +258,9 @@
                 <executions>
                     <execution>
                         <phase>package</phase>
-                        <goals>
-                            <goal>extract-docs</goal>
-                        </goals>
+<!--                        <goals>-->
+<!--                            <goal>extract-docs</goal>-->
+<!--                        </goals>-->
                     </execution>
                 </executions>
             </plugin>

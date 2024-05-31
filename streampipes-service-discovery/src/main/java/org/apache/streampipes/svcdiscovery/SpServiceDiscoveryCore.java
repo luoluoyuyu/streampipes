@@ -79,6 +79,11 @@ public class SpServiceDiscoveryCore implements ISpServiceDiscovery {
         .anyMatch(tag -> filterByTags.contains(tag.asString()));
   }
 
+  @Override
+  public List<SpServiceRegistration> findAll(){
+    return findService(0);
+  }
+
   private List<SpServiceRegistration> findService(int retryCount) {
     var services = serviceStorage.getAll();
     if (services.isEmpty()) {

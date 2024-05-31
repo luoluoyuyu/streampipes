@@ -13,18 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if eq .Values.monitoringSystem true }}
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: {{ .Values.monitoring.grafana.persistence.pvName }}
-spec:
-  storageClassName: {{ .Values.monitoring.grafana.persistence.storageClassName }}
-  capacity:
-    storage: {{ .Values.monitoring.grafana.persistence.storageSize }}
-  accessModes:
-    - {{ .Values.persistentVolumeAccessModes }}
-  persistentVolumeReclaimPolicy: {{ .Values.persistentVolumeReclaimPolicy }}
-  hostPath:
-    path: {{ .Values.hostPath }}/grafana
-{{- end }}
+{{/*{{- if eq .Values.monitoringSystem true }}*/}}
+{{/*apiVersion: v1*/}}
+{{/*kind: PersistentVolume*/}}
+{{/*metadata:*/}}
+{{/*  name: {{ .Values.monitoring.grafana.persistence.pvName }}*/}}
+{{/*spec:*/}}
+{{/*  storageClassName: {{ .Values.monitoring.grafana.persistence.storageClassName }}*/}}
+{{/*  capacity:*/}}
+{{/*    storage: {{ .Values.monitoring.grafana.persistence.storageSize }}*/}}
+{{/*  accessModes:*/}}
+{{/*    - {{ .Values.persistentVolumeAccessModes }}*/}}
+{{/*  persistentVolumeReclaimPolicy: {{ .Values.persistentVolumeReclaimPolicy }}*/}}
+{{/*  hostPath:*/}}
+{{/*    path: {{ .Values.hostPath }}/grafana*/}}
+{{/*{{- end }}*/}}

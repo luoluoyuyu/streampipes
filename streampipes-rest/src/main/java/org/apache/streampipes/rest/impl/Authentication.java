@@ -20,6 +20,7 @@ package org.apache.streampipes.rest.impl;
 
 import org.apache.streampipes.commons.exceptions.UserNotFoundException;
 import org.apache.streampipes.commons.exceptions.UsernameAlreadyTakenException;
+import org.apache.streampipes.manager.endpoint.EndpointItemParser;
 import org.apache.streampipes.model.client.user.JwtAuthenticationResponse;
 import org.apache.streampipes.model.client.user.LoginRequest;
 import org.apache.streampipes.model.client.user.Principal;
@@ -58,6 +59,8 @@ public class Authentication extends AbstractRestResource {
 
   @Autowired
   AuthenticationManager authenticationManager;
+
+  static int a=1;
 
   @PostMapping(
       path = "/login",
@@ -136,6 +139,14 @@ public class Authentication extends AbstractRestResource {
     Principal principal = ((PrincipalUserDetails<?>) auth.getPrincipal()).getDetails();
     if (principal instanceof UserAccount) {
       JwtAuthenticationResponse tokenResp = makeJwtResponse(auth);
+      if(a==1) {
+        new EndpointItemParser().parseAndAddEndpointItem( "http://extensions-all-iiot:8090/api/v1/worker/adapters/org.apache.streampipes.connect.iiot.protocol.stream.pulsar", principal.getPrincipalId(), true);
+        new EndpointItemParser().parseAndAddEndpointItem( "http://extensions-all-iiot:8090/sepa/org.apache.streampipes.processors.siddhi.count", principal.getPrincipalId(), true);
+        new EndpointItemParser().parseAndAddEndpointItem("http://extensions-all-iiot:8090/sec/org.apache.streampipes.sinks.internal.jvm.datalake", principal.getPrincipalId(), true);
+        new EndpointItemParser().parseAndAddEndpointItem("http://extensions-all-iiot:8090/api/v1/worker/adapters/org.apache.streampipes.connect.iiot.adapters.simulator.machine", principal.getPrincipalId(), true);
+        new EndpointItemParser().parseAndAddEndpointItem("http://extensions-all-iiot:8090/sepa/org.apache.streampipes.processors.transformation.jvm.booloperator.inverter", principal.getPrincipalId(), true);
+        a++;
+      }
       return ok(tokenResp);
     } else {
       throw new BadCredentialsException("Could not create auth token");

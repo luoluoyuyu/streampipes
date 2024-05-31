@@ -34,52 +34,53 @@ x-logging:
 services:
 
   #### apache/streampipes
-  backend:
-    build:
-      context: ./streampipes-service-core
-      dockerfile: Dockerfile
-    image: streampipes_backend:release-validation
-    depends_on:
-      - couchdb
-    volumes:
-      - backend:/root/.streampipes
-      - files:/spImages
-    logging: *default-logging
-    networks:
-      spnet:
+#  backend:
+#    build:
+#      context: ./streampipes-service-core
+#      dockerfile: Dockerfile
+#    image: streampipes_backend:release-validation
+#    depends_on:
+#      - couchdb
+#    volumes:
+#      - backend:/root/.streampipes
+#      - files:/spImages
+#    logging: *default-logging
+#    networks:
+#      spnet:
 
   ui:
-    build:
-      context: ./ui
-      dockerfile: Dockerfile
-    image: streampipes_ui:release-validation
+#    build:
+#      context: ./ui
+#      dockerfile: Dockerfile
+    image: apachestreampipes/ui:0.95.0-SNAPSHOT
     environment:
-      - SP_HTTP_SERVER_ADAPTER_ENDPOINT=extensions-all-jvm:8090
+      - SP_HTTP_SERVER_ADAPTER_ENDPOINT=192.168.0.197:8090
     ports:
       - "80:8088"
     depends_on:
       - couchdb
-      - backend
     logging: *default-logging
     networks:
       spnet:
 
-  extensions-all-jvm:
-    build:
-      context: ./streampipes-extensions/streampipes-extensions-all-jvm
-      dockerfile: Dockerfile
-    image: streampipes_pipeline-elements-all-jvm:release-validation
-    volumes:
-      - files:/spImages
-    logging: *default-logging
-    networks:
-      spnet:
+#  extensions-all-jvm:
+#    build:
+#      context: ./streampipes-extensions/streampipes-extensions-all-jvm
+#      dockerfile: Dockerfile
+#    image: streampipes_pipeline-elements-all-jvm:release-validation
+#    volumes:
+#      - files:/spImages
+#    logging: *default-logging
+#    networks:
+#      spnet:
 
   couchdb:
     image: couchdb:2.3.1
     environment:
       - COUCHDB_USER=admin
       - COUCHDB_PASSWORD=admin
+    ports:
+      - "5984:5984"
     logging: *default-logging
     volumes:
       - couchdb:/opt/couchdb/data
@@ -99,6 +100,9 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    ports:
+      - "9092:9092"
+      - "9093:9093"
     volumes:
       - kafka:/kafka
       - /var/run/docker.sock:/var/run/docker.sock
@@ -109,6 +113,8 @@ services:
   zookeeper:
     image: fogsyio/zookeeper:3.4.13
     logging: *default-logging
+    ports:
+      - "2181:2181"
     volumes:
       - zookeeper:/opt/zookeeper-3.4.13
     networks:
@@ -129,6 +135,11 @@ services:
     volumes:
       - influxdb:/var/lib/influxdb
       - influxdb2:/var/lib/influxdb2
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+      - "8090:8090"
+
     logging: *default-logging
     networks:
       spnet:

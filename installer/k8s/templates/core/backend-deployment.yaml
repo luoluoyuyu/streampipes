@@ -71,20 +71,31 @@ spec:
             - name: SP_NATS_PORT
               value: "{{ .Values.external.nats.service.port }}"
             {{- end }}
+            - name: SELECTOR
+              value: "WeightedRandomSelector"
+            - name: MIGRATOR
+              value: "TransferMigrator"#ThresholdMigrator OverloadMigrator TransferMigrator
+            - name: LOAD_TARGET_STD
+              value: "100"
+            - name: HISTORY_RESOURCE_PERCENTAGE
+              value: "0.9"
+            - name: OVERLOADED_THRESHOLD_PERCENTAGE
+              value: "70"
+            - name: MIN_MIGRATOR_PERCENTAGE
+              value: "20"
+            - name: SP_LOG_FETCH_INTERVAL_MS
+              value: "10000"
+            - name: THRESHOLD_MIGRATOR_PERCENTAGE
+              value: "20"
             - name: SP_INITIAL_ADMIN_EMAIL
               value: {{ .Values.streampipes.auth.users.admin.user}}
             - name: SP_INITIAL_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.streampipes.auth.secretName }}
-                  key: sp-initial-admin-password
+              value:
+                {{ .Values.streampipes.auth.users.admin.password }}
             - name: SP_INITIAL_SERVICE_USER
               value: "{{ .Values.streampipes.auth.users.service.user }}"
             - name: SP_INITIAL_SERVICE_USER_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.streampipes.auth.secretName }}
-                  key: sp-initial-client-secret
+              value: {{ .Values.streampipes.auth.users.service.secret }}
             - name: SP_ENCRYPTION_PASSCODE
               valueFrom:
                 secretKeyRef:
@@ -93,15 +104,9 @@ spec:
             - name: SP_COUCHDB_USER
               value: "{{ .Values.external.couchdb.user }}"
             - name: SP_COUCHDB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.streampipes.auth.secretName }}
-                  key: sp-couchdb-password
+              value: {{ .Values.external.couchdb.password }}
             - name: SP_TS_STORAGE_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.streampipes.auth.secretName }}
-                  key: sp-ts-storage-token
+              value: {{ .Values.external.influxdb.adminToken }}
           ports:
             - containerPort: {{ .Values.streampipes.core.port }}
           volumeMounts:

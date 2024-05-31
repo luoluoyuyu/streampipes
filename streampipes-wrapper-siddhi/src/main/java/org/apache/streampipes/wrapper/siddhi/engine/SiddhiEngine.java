@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class SiddhiEngine {
@@ -98,7 +99,12 @@ public class SiddhiEngine {
 
   public void processEvent(org.apache.streampipes.model.runtime.Event event) {
     try {
+      for(Map.Entry<String, Object> e:event.getRaw().entrySet()) {
+        System.out.print(e.getKey()+":"+e.getValue()+" ");
+      }
+      System.out.println();
       String sourceId = event.getSourceInfo().getSourceId();
+      System.out.println(sourceId);
       InputHandler inputHandler = siddhiInputHandlers.get(sourceId);
       List<String> eventKeys = this.typeInfo
           .get(sourceId)

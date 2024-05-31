@@ -17,6 +17,8 @@
  */
 package org.apache.streampipes.svcdiscovery.api;
 
+import org.apache.streampipes.model.extensions.svcdiscovery.SpServiceRegistration;
+
 import java.util.List;
 
 public interface ISpServiceDiscovery {
@@ -39,4 +41,11 @@ public interface ISpServiceDiscovery {
   List<String> getServiceEndpoints(String svcGroup,
                                    boolean restrictToHealthy,
                                    List<String> filterByTags);
+
+
+  /**
+   * Get all service
+   * @return list of services
+   */
+  List<SpServiceRegistration> findAll();
 }

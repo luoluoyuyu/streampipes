@@ -24,10 +24,16 @@ import org.apache.streampipes.commons.exceptions.NoMatchingProtocolException;
 import org.apache.streampipes.commons.exceptions.NoMatchingSchemaException;
 import org.apache.streampipes.commons.exceptions.NoSuitableSepasAvailableException;
 import org.apache.streampipes.commons.exceptions.RemoteServerNotAccessibleException;
+import org.apache.streampipes.commons.exceptions.connect.AdapterException;
+import org.apache.streampipes.commons.prometheus.adapter.AdapterMetricsManager;
+import org.apache.streampipes.commons.random.UUIDGenerator;
+import org.apache.streampipes.connect.management.management.AdapterMasterManagement;
+import org.apache.streampipes.connect.management.management.DescriptionManagement;
 import org.apache.streampipes.manager.execution.status.PipelineStatusManager;
 import org.apache.streampipes.manager.operations.Operations;
 import org.apache.streampipes.manager.pipeline.PipelineManager;
 import org.apache.streampipes.model.client.exception.InvalidConnectionException;
+import org.apache.streampipes.model.connect.adapter.AdapterDescription;
 import org.apache.streampipes.model.message.ErrorMessage;
 import org.apache.streampipes.model.message.Message;
 import org.apache.streampipes.model.message.Notification;
@@ -38,7 +44,10 @@ import org.apache.streampipes.model.message.SuccessMessage;
 import org.apache.streampipes.model.pipeline.Pipeline;
 import org.apache.streampipes.model.pipeline.PipelineElementRecommendationMessage;
 import org.apache.streampipes.model.pipeline.PipelineOperationStatus;
+import org.apache.streampipes.model.staticproperty.FreeTextStaticProperty;
+import org.apache.streampipes.resource.management.SpResourceManager;
 import org.apache.streampipes.rest.core.base.impl.AbstractAuthGuardedRestResource;
+import org.apache.streampipes.rest.impl.connect.AdapterResource;
 import org.apache.streampipes.rest.security.AuthConstants;
 import org.apache.streampipes.rest.shared.exception.SpMessageException;
 import org.apache.streampipes.rest.shared.exception.SpNotificationException;
@@ -50,6 +59,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.apache.streampipes.storage.management.StorageDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -70,6 +80,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.SecureRandom;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -80,6 +91,8 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 public class PipelineResource extends AbstractAuthGuardedRestResource {
 
   private static final Logger LOG = LoggerFactory.getLogger(PipelineResource.class);
+
+  public static int x=70;
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(summary = "Get all pipelines of the current user", tags = {"Pipeline"}, responses = {
@@ -110,6 +123,33 @@ public class PipelineResource extends AbstractAuthGuardedRestResource {
   @PreAuthorize(AuthConstants.HAS_DELETE_PIPELINE_PRIVILEGE)
   public Message removeOwn(@PathVariable("pipelineId") String pipelineId) {
     PipelineManager.deletePipeline(pipelineId);
+    return Notifications.success("Pipeline deleted");
+  }
+
+  @GetMapping(
+          path = "/deleteAll/{num}",
+          produces = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "Delete a pipeline with a given id", tags = {"Pipeline"})
+  @PreAuthorize(AuthConstants.HAS_DELETE_PIPELINE_PRIVILEGE)
+  public Message deleteAll(@PathVariable("num") int num) {
+    for(Pipeline pipeline :PipelineManager.getAllPipelines()) {
+      PipelineManager.deletePipeline(pipeline.getPipelineId());
+    }
+    AdapterMasterManagement adapterMasterManagement =new AdapterMasterManagement(StorageDispatcher.INSTANCE.getNoSqlStore()
+            .getAdapterInstanceStorage(),
+            new SpResourceManager().manageAdapters(),
+            new SpResourceManager().manageDataStreams(),
+            AdapterMetricsManager.INSTANCE.getAdapterMetrics());
+      try {
+          for(AdapterDescription adapter:adapterMasterManagement.getAllAdapterInstances()){
+            adapterMasterManagement.deleteAdapter(adapter.getElementId());
+          }
+      } catch (AdapterException e) {
+          throw new RuntimeException(e);
+      }
+
+    x=num;
+    AdapterResource.x=num;
     return Notifications.success("Pipeline deleted");
   }
 
@@ -163,9 +203,59 @@ public class PipelineResource extends AbstractAuthGuardedRestResource {
   public ResponseEntity<SuccessMessage> addPipeline(@RequestBody Pipeline pipeline) {
 
     String pipelineId = PipelineManager.addPipeline(getAuthenticatedUserSid(), pipeline);
+    while (x!=1){
+     pipeline=pipeline.clone();
+
+      var store=StorageDispatcher.INSTANCE.getNoSqlStore()
+              .getAdapterInstanceStorage();
+      AdapterDescription description=null;
+      for(AdapterDescription adapterDescription:store.getAllAdapters()){
+        if(adapterDescription.getName().equals("test"+x)){
+          description=adapterDescription;
+          break;
+        }
+      }
+      if(description==null){
+        continue;
+      }
+      pipeline.getStreams().get(0).setCorrespondingAdapterId(description.getElementId());
+      String w=pipeline.getStreams().get(0).getElementId();
+      pipeline.getStreams().get(0).setElementId(w.substring(0,w.length()-6)+makeId(6));
+      pipeline.getStreams().get(0).getEventGrounding().getTransportProtocol().setElementId(description.getEventGrounding().getTransportProtocol().getElementId());
+      pipeline.getStreams().get(0).getEventGrounding().getTransportProtocol().setTopicDefinition(description.getEventGrounding().getTransportProtocol().getTopicDefinition());
+      String a=description.getEventGrounding().getTransportProtocol().getTopicDefinition().getActualTopicName();
+      pipeline.getSepas().get(0).getInputStreams().get(0).getEventGrounding().getTransportProtocol().getTopicDefinition().setActualTopicName(a);
+      pipeline.getStreams().get(0).getEventGrounding().getTransportProtocol().getTopicDefinition().setActualTopicName(a);
+      String id=pipeline.getSepas().get(0).getElementId();
+      String con=pipeline.getSepas().get(0).getOutputStream().getEventGrounding().getTransportProtocol().getTopicDefinition().getActualTopicName();
+      con=con.substring(0,con.length()-15)+makeId(15);
+      pipeline.getSepas().get(0).getOutputStream().getEventGrounding().getTransportProtocol().getTopicDefinition().setActualTopicName(con);
+      pipeline.getSepas().get(0).setElementId(id.substring(0,id.length()-5)+makeId(5));
+
+      id=pipeline.getActions().get(0).getElementId();
+      pipeline.getActions().get(0).setElementId(id.substring(0,id.length()-5)+makeId(5));
+      pipeline.getActions().get(0).getInputStreams().get(0).getEventGrounding().getTransportProtocol().getTopicDefinition().setActualTopicName(con);
+      pipeline.setName("test"+x);
+      ((FreeTextStaticProperty)pipeline.getActions().get(0).getStaticProperties().get(1)).setValue("test"+x);
+      pipeline.setPipelineId(UUIDGenerator.generateUuid());
+      PipelineManager.addPipeline(getAuthenticatedUserSid(), pipeline);
+      x--;
+    }
     SuccessMessage message = Notifications.success("Pipeline stored");
     message.addNotification(new Notification("id", pipelineId));
     return ok(message);
+  }
+  public static String makeId(int count) {
+    StringBuilder text = new StringBuilder();
+    String possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    SecureRandom random = new SecureRandom();
+
+    for (int i = 0; i < count; i++) {
+      int randomIndex = random.nextInt(possible.length());
+      text.append(possible.charAt(randomIndex));
+    }
+
+    return text.toString();
   }
 
   @PostMapping(

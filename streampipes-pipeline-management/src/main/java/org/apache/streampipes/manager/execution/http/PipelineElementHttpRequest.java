@@ -42,6 +42,7 @@ public abstract class PipelineElementHttpRequest {
               .execute();
       return handleResponse(httpResp, pipelineElement, endpointUrl);
     } catch (Exception e) {
+       e.printStackTrace();
       logError(endpointUrl, pipelineElement.getName(), e.getMessage());
       return new PipelineElementStatus(endpointUrl, pipelineElement.getName(), false, e.getMessage());
     }

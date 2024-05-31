@@ -21,7 +21,9 @@ import org.apache.streampipes.model.shared.annotation.TsModel;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @TsModel
 public class SpServiceRegistration {
@@ -34,6 +36,11 @@ public class SpServiceRegistration {
   private String scheme = "http";
   private String host;
   private int port;
+
+  private int weight = 1;
+
+  private Set<String> labels;
+
   private List<SpServiceTag> tags;
   private String healthCheckPath;
   private long firstTimeSeenUnhealthy = 0;
@@ -56,6 +63,7 @@ public class SpServiceRegistration {
     this.port = port;
     this.tags = tags;
     this.healthCheckPath = healthCheckPath;
+    this.labels =new HashSet<>();
   }
 
   public static SpServiceRegistration from(String svcType,
@@ -167,5 +175,21 @@ public class SpServiceRegistration {
 
   public void setStatus(SpServiceStatus status) {
     this.status = status;
+  }
+
+  public int getWeight() {
+    return weight;
+  }
+
+  public void setWeight(int weight) {
+    this.weight = weight;
+  }
+
+  public Set<String> getLabels() {
+    return labels;
+  }
+
+  public void setLabels(Set<String> labels) {
+    this.labels = labels;
   }
 }

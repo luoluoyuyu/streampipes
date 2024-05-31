@@ -19,6 +19,7 @@
 package org.apache.streampipes.rest.impl.admin;
 
 import org.apache.streampipes.manager.endpoint.EndpointFetcher;
+import org.apache.streampipes.manager.endpoint.EndpointItemParser;
 import org.apache.streampipes.manager.operations.Operations;
 import org.apache.streampipes.model.SpDataStream;
 import org.apache.streampipes.model.base.NamedStreamPipesEntity;

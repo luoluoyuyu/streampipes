@@ -18,11 +18,10 @@
 package org.apache.streampipes.commons.prometheus;
 
 
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.Counter;
-import io.prometheus.client.Gauge;
-import io.prometheus.client.Histogram;
-import io.prometheus.client.Summary;
+import io.prometheus.client.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class StreamPipesCollectorRegistry {
@@ -33,6 +32,10 @@ public class StreamPipesCollectorRegistry {
 
   public static CollectorRegistry getCollectorRegistry() {
     return collectorRegistry;
+  }
+
+  public static  void remove(Gauge gauge){
+    collectorRegistry.unregister(gauge);
   }
 
   public static Gauge registerGauge(String name, String help) {

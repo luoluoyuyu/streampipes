@@ -18,6 +18,7 @@
 
 package org.apache.streampipes.extensions.api.monitoring;
 
+import org.apache.streampipes.model.loadbalancer.ServiceUsageReport;
 import org.apache.streampipes.model.monitoring.SpEndpointMonitoringInfo;
 import org.apache.streampipes.model.monitoring.SpLogEntry;
 import org.apache.streampipes.model.monitoring.SpMetricsEntry;
@@ -48,17 +49,19 @@ public enum SpMonitoringManager {
 
   public void increaseInCounter(String resourceId,
                                 String sourceInfo,
+                                long size,
                                 long timestamp) {
     var currentEntry = getMetricsEntry(resourceId, timestamp);
-    currentEntry.addInMetrics(sourceInfo, timestamp);
+    currentEntry.addInMetrics(sourceInfo, size, timestamp);
     this.metricsInfos.put(resourceId, currentEntry);
   }
 
 
   public void increaseOutCounter(String resourceId,
+                                 long size,
                                  long timestamp) {
     var currentEntry = getMetricsEntry(resourceId, timestamp);
-    currentEntry.addOutMetrics(timestamp);
+    currentEntry.addOutMetrics(size, timestamp);
     this.metricsInfos.put(resourceId, currentEntry);
   }
 

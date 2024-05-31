@@ -13,57 +13,57 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-{{- if eq .Values.monitoringSystem true }}
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ .Values.monitoring.grafana.appName }}
-  labels:
-    app: {{ .Values.monitoring.grafana.appName }}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: {{ .Values.monitoring.grafana.appName }}
-  template:
-    metadata:
-      labels:
-        app: {{ .Values.monitoring.grafana.appName }}
-    spec:
-      volumes:
-        - name: {{ .Values.monitoring.grafana.persistence.pvName }}
-          persistentVolumeClaim:
-            claimName:  {{ .Values.monitoring.grafana.persistence.claimName }}
-      restartPolicy: {{ .Values.restartPolicy }}
-      initContainers:
-        - name: init-wait-couchdb-core
-          image: alpine
-          command: ["sh", "-c", "for i in $(seq 1 300); do nc -zvw1 {{ .Values.extensions.iiot.service.name }} {{ .Values.extensions.iiot.service.port }} && exit 0 || sleep 3; done; exit 1"]
-      containers:
-        - name: {{ .Values.monitoring.grafana.appName }}
-          image: grafana/grafana:{{ .Values.monitoring.grafana.version }}
-          imagePullPolicy: {{ .Values.pullPolicy }}
-          ports:
-            - containerPort: {{ .Values.monitoring.grafana.port }}
-          volumeMounts:
-            - name: {{ .Values.monitoring.grafana.persistence.pvName }}
-              mountPath: /var/lib/grafana
-          livenessProbe:
-            tcpSocket:
-              port: {{ .Values.monitoring.grafana.port }}
-            initialDelaySeconds: {{ .Values.initialDelaySeconds }}
-            periodSeconds: {{ .Values.periodSeconds }}
-            failureThreshold: {{ .Values.failureThreshold }}
-          readinessProbe:
-            tcpSocket:
-              port: {{ .Values.monitoring.grafana.port }}
-            initialDelaySeconds: {{ .Values.initialDelaySeconds }}
-            periodSeconds: {{ .Values.periodSeconds }}
-            failureThreshold: {{ .Values.failureThreshold }}
-          startupProbe:
-            tcpSocket:
-              port: {{ .Values.monitoring.grafana.port }}
-            initialDelaySeconds: {{ .Values.initialDelaySeconds }}
-            periodSeconds: {{ .Values.periodSeconds }}
-            failureThreshold: {{ .Values.failureThreshold }}
-{{- end }}
+{{/*{{- if eq .Values.monitoringSystem true }}*/}}
+{{/*apiVersion: apps/v1*/}}
+{{/*kind: Deployment*/}}
+{{/*metadata:*/}}
+{{/*  name: {{ .Values.monitoring.grafana.appName }}*/}}
+{{/*  labels:*/}}
+{{/*    app: {{ .Values.monitoring.grafana.appName }}*/}}
+{{/*spec:*/}}
+{{/*  replicas: 1*/}}
+{{/*  selector:*/}}
+{{/*    matchLabels:*/}}
+{{/*      app: {{ .Values.monitoring.grafana.appName }}*/}}
+{{/*  template:*/}}
+{{/*    metadata:*/}}
+{{/*      labels:*/}}
+{{/*        app: {{ .Values.monitoring.grafana.appName }}*/}}
+{{/*    spec:*/}}
+{{/*      volumes:*/}}
+{{/*        - name: {{ .Values.monitoring.grafana.persistence.pvName }}*/}}
+{{/*          persistentVolumeClaim:*/}}
+{{/*            claimName:  {{ .Values.monitoring.grafana.persistence.claimName }}*/}}
+{{/*      restartPolicy: {{ .Values.restartPolicy }}*/}}
+{{/*      initContainers:*/}}
+{{/*        - name: init-wait-couchdb-core*/}}
+{{/*          image: alpine*/}}
+{{/*          command: ["sh", "-c", "for i in $(seq 1 300); do nc -zvw1 {{ .Values.extensions.iiot.service.name }} {{ .Values.extensions.iiot.service.port }} && exit 0 || sleep 3; done; exit 1"]*/}}
+{{/*      containers:*/}}
+{{/*        - name: {{ .Values.monitoring.grafana.appName }}*/}}
+{{/*          image: grafana/grafana:{{ .Values.monitoring.grafana.version }}*/}}
+{{/*          imagePullPolicy: {{ .Values.pullPolicy }}*/}}
+{{/*          ports:*/}}
+{{/*            - containerPort: {{ .Values.monitoring.grafana.port }}*/}}
+{{/*          volumeMounts:*/}}
+{{/*            - name: {{ .Values.monitoring.grafana.persistence.pvName }}*/}}
+{{/*              mountPath: /var/lib/grafana*/}}
+{{/*          livenessProbe:*/}}
+{{/*            tcpSocket:*/}}
+{{/*              port: {{ .Values.monitoring.grafana.port }}*/}}
+{{/*            initialDelaySeconds: {{ .Values.initialDelaySeconds }}*/}}
+{{/*            periodSeconds: {{ .Values.periodSeconds }}*/}}
+{{/*            failureThreshold: {{ .Values.failureThreshold }}*/}}
+{{/*          readinessProbe:*/}}
+{{/*            tcpSocket:*/}}
+{{/*              port: {{ .Values.monitoring.grafana.port }}*/}}
+{{/*            initialDelaySeconds: {{ .Values.initialDelaySeconds }}*/}}
+{{/*            periodSeconds: {{ .Values.periodSeconds }}*/}}
+{{/*            failureThreshold: {{ .Values.failureThreshold }}*/}}
+{{/*          startupProbe:*/}}
+{{/*            tcpSocket:*/}}
+{{/*              port: {{ .Values.monitoring.grafana.port }}*/}}
+{{/*            initialDelaySeconds: {{ .Values.initialDelaySeconds }}*/}}
+{{/*            periodSeconds: {{ .Values.periodSeconds }}*/}}
+{{/*            failureThreshold: {{ .Values.failureThreshold }}*/}}
+{{/*{{- end }}*/}}

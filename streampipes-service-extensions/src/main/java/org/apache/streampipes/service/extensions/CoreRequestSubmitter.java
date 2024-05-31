@@ -43,6 +43,7 @@ public class CoreRequestSubmitter {
       request.get();
       LOG.info(successMessage);
     } catch (SpRuntimeException e) {
+        e.printStackTrace();
       LOG.warn(
           failureMessage + " Trying again in {} seconds",
           RETRY_INTERVAL_SECONDS

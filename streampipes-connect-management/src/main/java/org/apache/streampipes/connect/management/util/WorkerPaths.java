@@ -19,10 +19,17 @@ package org.apache.streampipes.connect.management.util;
 
 import org.apache.streampipes.commons.exceptions.NoServiceEndpointsAvailableException;
 import org.apache.streampipes.manager.execution.endpoint.ExtensionsServiceEndpointGenerator;
+import org.apache.streampipes.manager.loadbalance.LoadManager;
+import org.apache.streampipes.manager.loadbalance.ResourceUnitGenerator;
+import org.apache.streampipes.model.connect.adapter.AdapterDescription;
+import org.apache.streampipes.model.extensions.svcdiscovery.SpServiceRegistration;
+import org.apache.streampipes.model.loadbalancer.ResourceUnit;
 import org.apache.streampipes.svcdiscovery.api.model.SpServiceUrlProvider;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Map;
 
 public class WorkerPaths {
 
@@ -56,9 +63,15 @@ public class WorkerPaths {
     return WorkerMainPath + "/guess/schema";
   }
 
-  public static String findEndpointUrl(String appId) throws NoServiceEndpointsAvailableException, URISyntaxException {
+  public static String findEndpointUrl(AdapterDescription appId) throws NoServiceEndpointsAvailableException, URISyntaxException {
     SpServiceUrlProvider serviceUrlProvider = SpServiceUrlProvider.ADAPTER;
-    String endpointUrl = new ExtensionsServiceEndpointGenerator(appId, serviceUrlProvider).getEndpointResourceUrl();
+    Map<ResourceUnit<AdapterDescription>, List<SpServiceRegistration>> resourceUnit  = ResourceUnitGenerator.unitGeneration(appId);
+    SpServiceRegistration spServiceRegistration=null;
+    for(Map.Entry<ResourceUnit<AdapterDescription>, List<SpServiceRegistration>> e : resourceUnit.entrySet()) {
+      spServiceRegistration=LoadManager.allocation(e.getKey(),e.getValue());
+      e.getKey().setServiceId(spServiceRegistration.getSvcId());
+    }
+    String endpointUrl = serviceUrlProvider.getInvocationUrl(spServiceRegistration.getServiceUrl(),appId.getAppId());
     URI uri = new URI(endpointUrl);
     return uri.getScheme() + "://" + uri.getAuthority();
   }

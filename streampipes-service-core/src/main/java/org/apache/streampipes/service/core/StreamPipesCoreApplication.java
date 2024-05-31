@@ -25,6 +25,11 @@ import org.apache.streampipes.manager.health.CoreInitialInstallationProgress;
 import org.apache.streampipes.manager.health.CoreServiceStatusManager;
 import org.apache.streampipes.manager.health.PipelineHealthCheck;
 import org.apache.streampipes.manager.health.ServiceHealthCheck;
+import org.apache.streampipes.manager.loadbalance.LoadBalancer;
+import org.apache.streampipes.manager.loadbalance.LoadManager;
+import org.apache.streampipes.manager.loadbalance.impl.ExtensibleLoadManager;
+import org.apache.streampipes.manager.loadbalance.impl.ThresholdMigrator;
+import org.apache.streampipes.manager.loadbalance.impl.WeightedRandomSelector;
 import org.apache.streampipes.manager.monitoring.pipeline.ExtensionsServiceLogExecutor;
 import org.apache.streampipes.manager.operations.Operations;
 import org.apache.streampipes.manager.setup.AutoInstallation;
@@ -121,6 +126,8 @@ public class StreamPipesCoreApplication extends StreamPipesServiceBase {
     new CouchDbViewGenerator().createGenericDatabaseIfNotExists();
     var env = Environments.getEnvironment();
 
+    LoadManager.init();
+
     if (!isConfigured()) {
       CoreInitialInstallationProgress.INSTANCE.triggerInitiallyInstallingMode();
       doInitialSetup(env.getInitialWaitTimeBeforeInstallationInMillis().getValueOrDefault());
@@ -142,7 +149,6 @@ public class StreamPipesCoreApplication extends StreamPipesServiceBase {
         env.getHealthCheckIntervalInMillis().getValueOrDefault(),
         List.of(
             new ServiceHealthCheck(),
-            new PipelineHealthCheck(),
             new AdapterHealthCheck(
                 StorageDispatcher.INSTANCE.getNoSqlStore().getAdapterInstanceStorage(),
                 new AdapterMasterManagement(

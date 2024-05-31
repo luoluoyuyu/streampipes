@@ -29,6 +29,7 @@ import org.apache.streampipes.manager.execution.task.SecretEncryptionTask;
 import org.apache.streampipes.manager.execution.task.StorePipelineStatusTask;
 import org.apache.streampipes.manager.execution.task.SubmitRequestTask;
 import org.apache.streampipes.manager.execution.task.UpdateGroupIdTask;
+import org.apache.streampipes.manager.loadbalance.ExtensionServiceSelector;
 import org.apache.streampipes.model.message.PipelineStatusMessageType;
 import org.apache.streampipes.model.pipeline.Pipeline;
 import org.apache.streampipes.resource.management.secret.SecretProvider;

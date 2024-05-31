@@ -18,6 +18,7 @@
 
 package org.apache.streampipes.rest.impl.connect;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.streampipes.commons.exceptions.connect.AdapterException;
 import org.apache.streampipes.commons.prometheus.adapter.AdapterMetricsManager;
 import org.apache.streampipes.connect.management.management.AdapterMasterManagement;
@@ -30,6 +31,7 @@ import org.apache.streampipes.model.connect.adapter.PipelineUpdateInfo;
 import org.apache.streampipes.model.message.Message;
 import org.apache.streampipes.model.message.Notifications;
 import org.apache.streampipes.model.monitoring.SpLogMessage;
+import org.apache.streampipes.model.staticproperty.FreeTextStaticProperty;
 import org.apache.streampipes.resource.management.PermissionResourceManager;
 import org.apache.streampipes.resource.management.SpResourceManager;
 import org.apache.streampipes.rest.security.AuthConstants;
@@ -62,6 +64,7 @@ public class AdapterResource extends AbstractAdapterResource<AdapterMasterManage
 
   private static final Logger LOG = LoggerFactory.getLogger(AdapterResource.class);
 
+  public static int x=70;
   public AdapterResource() {
     super(() -> new AdapterMasterManagement(
         StorageDispatcher.INSTANCE.getNoSqlStore()
@@ -82,6 +85,12 @@ public class AdapterResource extends AbstractAdapterResource<AdapterMasterManage
 
     try {
       adapterId = managementService.addAdapter(adapterDescription, principalSid);
+      while (x!=1){
+        adapterDescription.setName("test"+x);
+        managementService.addAdapter(adapterDescription, principalSid);
+//        managementService.startStreamAdapter(adapterDescription.getElementId());
+        x--;
+      }
     } catch (AdapterException e) {
       LOG.error("Error while starting adapter with id " + adapterDescription.getAppId(), e);
       return ok(Notifications.error(e.getMessage()));

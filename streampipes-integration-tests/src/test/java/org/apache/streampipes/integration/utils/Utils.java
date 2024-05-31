@@ -27,7 +27,7 @@ public class Utils {
   public static List<Map<String, Object>> getSimpleTestEvents() {
     List<Map<String, Object>> result = new ArrayList<>();
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 100; i++) {
       result.add(
           Map.of(
               "timestamp", i,

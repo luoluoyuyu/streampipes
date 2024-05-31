@@ -26,4 +26,4 @@ In the [dashboards](./grafana/dashboards) directory, you can find sample grafana
 
 
 ## note
-The metrics displayed in the [dashboards](. /grafana/dashboards) directory dashboards show metrics that have a filter condition related to the job_name, if you change the job_name in the example you must also change the condition in the grafana dashboard.
+The metrics displayed in the [dashboards](./grafana/dashboards) directory dashboards show metrics that have a filter condition related to the job_name, if you change the job_name in the example you must also change the condition in the grafana dashboard.

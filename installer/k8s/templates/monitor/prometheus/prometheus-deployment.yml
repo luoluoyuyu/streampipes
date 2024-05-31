@@ -46,31 +46,31 @@ spec:
           image: alpine
           command: ["sh", "-c", "for i in $(seq 1 300); do nc -zvw1 {{ .Values.streampipes.core.service.name }} {{ .Values.streampipes.core.service.port }} && nc -zvw1 {{ .Values.extensions.iiot.service.name }} {{ .Values.extensions.iiot.service.port }} && exit 0 || sleep 3; done; exit 1"]
       containers:
-        - name: prometheus-token-refresher
-          image: luoluoyuyu/prometheus-token-refresher:1.0.0
-          imagePullPolicy: "IfNotPresent"
-          env:
-            - name: SP_HOST
-              value: "{{ .Values.streampipes.core.service.name }}"
-            - name: SP_PORT
-              value: "{{ .Values.streampipes.core.service.port }}"
-            - name: SP_USERNAME
-              value: "{{ .Values.streampipes.auth.users.admin.user }}"
-            - name: SP_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.streampipes.auth.secretName}}
-                  key: sp-initial-admin-password
-            - name: PROMETHEUS_HOST
-              value: "{{ .Values.monitoring.prometheus.service.name }}"
-            - name: PROMETHEUS_PORT
-              value: "{{ .Values.monitoring.prometheus.service.port }}"
-            - name: TOKEN_FILE
-              value: "{{ .Values.monitoring.prometheus.config.tokenFileDir }}/{{ .Values.monitoring.prometheus.config.tokenFileName }}"
-          volumeMounts:
-            - name: shared-token
-              mountPath: {{ .Values.monitoring.prometheus.config.tokenFileDir }}
-              readOnly: false
+{{/*        - name: prometheus-token-refresher*/}}
+{{/*          image: luoluoyuyu/prometheus-token-refresher:1.0.0*/}}
+{{/*          imagePullPolicy: "IfNotPresent"*/}}
+{{/*          env:*/}}
+{{/*            - name: SP_HOST*/}}
+{{/*              value: "{{ .Values.streampipes.core.service.name }}"*/}}
+{{/*            - name: SP_PORT*/}}
+{{/*              value: "{{ .Values.streampipes.core.service.port }}"*/}}
+{{/*            - name: SP_USERNAME*/}}
+{{/*              value: "{{ .Values.streampipes.auth.users.admin.user }}"*/}}
+{{/*            - name: SP_PASSWORD*/}}
+{{/*              valueFrom:*/}}
+{{/*                secretKeyRef:*/}}
+{{/*                  name: {{ .Values.streampipes.auth.secretName}}*/}}
+{{/*                  key: sp-initial-admin-password*/}}
+{{/*            - name: PROMETHEUS_HOST*/}}
+{{/*              value: "{{ .Values.monitoring.prometheus.service.name }}"*/}}
+{{/*            - name: PROMETHEUS_PORT*/}}
+{{/*              value: "{{ .Values.monitoring.prometheus.service.port }}"*/}}
+{{/*            - name: TOKEN_FILE*/}}
+{{/*              value: "{{ .Values.monitoring.prometheus.config.tokenFileDir }}/{{ .Values.monitoring.prometheus.config.tokenFileName }}"*/}}
+{{/*          volumeMounts:*/}}
+{{/*            - name: shared-token*/}}
+{{/*              mountPath: {{ .Values.monitoring.prometheus.config.tokenFileDir }}*/}}
+{{/*              readOnly: false*/}}
         - name: {{ .Values.monitoring.prometheus.appName }}
           image: bitnami/prometheus:{{ .Values.monitoring.prometheus.version }}
           imagePullPolicy: {{ .Values.pullPolicy }}

@@ -15,9 +15,9 @@
 
 # lite or full (default: lite)
 deployment: lite
-preferredBroker: "nats"
-monitoringSystem: false
-pullPolicy: "Always"
+preferredBroker: "kafka"
+monitoringSystem: true
+pullPolicy: "IfNotPresent"
 restartPolicy: Always
 persistentVolumeReclaimPolicy: "Delete"
 persistentVolumeAccessModes: "ReadWriteOnce"
@@ -27,7 +27,7 @@ failureThreshold: 30
 hostPath: ""
 
 streampipes:
-  version: "0.95.0-SNAPSHOT"
+  version: "latest"
   registry: "apachestreampipes"
   auth:
     secretName: "sp-secrets"
@@ -37,7 +37,7 @@ streampipes:
         password: "admin"
       service:
         user: "sp-service-client"
-        secret:
+        secret: "my-apache-streampipes-secret-key-change-me"
     encryption:
       passcode:
   core:
@@ -92,7 +92,7 @@ external:
     appName: "couchdb"
     version: 3.3.1
     user: "admin"
-    password:
+    password: "admin"
     port: 5984
     service:
       name: "couchdb"
@@ -107,7 +107,7 @@ external:
     version: 2.6
     username: "admin"
     password: "sp-admin"
-    adminToken:
+    adminToken: "secret-token"
     initOrg: "sp"
     initBucket: "sp"
     # For database migration in v0.91.0 - set init mode to 'upgrade' to migrate an existing installation
@@ -194,8 +194,8 @@ monitoring:
       pvName: "prometheus-pv"
       tokenStorageSize: "16Ki"
     config:
-      scrapeInterval: 10s
-      evaluationInterval: 15s
+      scrapeInterval: 20s
+      evaluationInterval: 20s
       backendJobName: backend
       extensionsName: extensions-all-iiot
       tokenFileName: token

@@ -48,6 +48,9 @@ public class Pipeline extends ElementComposition {
 
   private PipelineHealthStatus healthStatus;
 
+
+  private List<String> labels;
+
   @JsonProperty("_id")
   private @SerializedName("_id")
   String pipelineId;
@@ -61,6 +64,15 @@ public class Pipeline extends ElementComposition {
     this.actions = new ArrayList<>();
     this.pipelineNotifications = new ArrayList<>();
     this.pipelineCategories = new ArrayList<>();
+    this.labels = new ArrayList<>();
+  }
+
+  public List<String> getLabels() {
+    return labels;
+  }
+
+  public void setLabels(List<String> labels) {
+    this.labels = labels;
   }
 
   public List<DataSinkInvocation> getActions() {
