@@ -43,4 +43,11 @@ public class AdaptersTest {
       kafkaAdapterTester.run();
     }
   }
+
+  @Test
+  public void testRocketMQAdapter() throws Exception {
+    try (RocketMQAdapterTester rocketMQAdapterTester = new RocketMQAdapterTester()) {
+      rocketMQAdapterTester.run();
+    }
+  }
 }
