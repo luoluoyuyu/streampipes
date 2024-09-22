@@ -46,9 +46,6 @@ import { Subscription } from 'rxjs';
 export class PipelineOverviewComponent implements OnInit, OnDestroy {
     _pipelines: Pipeline[];
 
-    @Input()
-    pipelineToStart: Pipeline;
-
     @Output()
     refreshPipelinesEmitter: EventEmitter<boolean> =
         new EventEmitter<boolean>();
@@ -69,7 +66,6 @@ export class PipelineOverviewComponent implements OnInit, OnDestroy {
 
     isAdmin = false;
     hasPipelineWritePrivileges = false;
-    hasPipelineDeletePrivileges = false;
 
     userSub: Subscription;
 
@@ -88,21 +84,8 @@ export class PipelineOverviewComponent implements OnInit, OnDestroy {
             this.hasPipelineWritePrivileges = this.authService.hasRole(
                 UserPrivilege.PRIVILEGE_WRITE_PIPELINE,
             );
-            this.hasPipelineDeletePrivileges = this.authService.hasRole(
-                UserPrivilege.PRIVILEGE_DELETE_PIPELINE,
-            );
         });
         this.toggleRunningOperation = this.toggleRunningOperation.bind(this);
-
-        if (this.pipelineToStart) {
-            if (!this.pipelineToStart.running) {
-                this.pipelineOperationsService.startPipeline(
-                    this.pipelineToStart._id,
-                    this.refreshPipelinesEmitter,
-                    this.toggleRunningOperation,
-                );
-            }
-        }
     }
 
     toggleRunningOperation(currentOperation: string) {
