@@ -18,12 +18,16 @@
 
 package org.apache.streampipes.sinks.databases.jvm.milvus;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.milvus.param.Constant;
 import io.milvus.pool.MilvusClientV2Pool;
 import io.milvus.pool.PoolConfig;
 import io.milvus.v2.client.ConnectConfig;
 import io.milvus.v2.client.MilvusClientV2;
+import io.milvus.v2.common.DataType;
+import io.milvus.v2.service.collection.request.AddFieldReq;
+import io.milvus.v2.service.collection.request.CreateCollectionReq;
 import io.milvus.v2.service.collection.request.ReleaseCollectionReq;
 import io.milvus.v2.service.database.request.CreateDatabaseReq;
 import io.milvus.v2.service.vector.request.InsertReq;
@@ -58,11 +62,12 @@ public class MilvusSink extends StreamPipesDataSink{
 
   private static final String VECTOR_KEY = "vector";
 
-  //private final Gson gson = new Gson();
+  private final Gson gson = new Gson();
 
   private MilvusClientV2Pool pool;
   private MilvusClientV2 client;
   String vector;
+  DataType type;
   //discussion里介绍一下milvus，贴一个milvus官网链接，pom修改依赖版本
   //数据库，向量配置和表配置移到这里来
   @Override
@@ -94,22 +99,6 @@ public class MilvusSink extends StreamPipesDataSink{
       final String token = extractor.singleValueParameter(TOKEN_KEY, String.class);
       final String dbName = extractor.singleValueParameter(DBNAME_KEY, String.class);
 
-      //create a dataBase
-      Map<String, String> properties = new HashMap<>();
-      properties.put(Constant.DATABASE_REPLICA_NUMBER,DATABASE_REPLICA_NUMBER_KEY);
-      CreateDatabaseReq createDatabaseReq = CreateDatabaseReq.builder()
-              .databaseName(DBNAME_KEY)
-              .properties(properties)
-              .build();
-      client.createDatabase(createDatabaseReq);
-      client.useDatabase(DBNAME_KEY);
-
-      // create a collection with schema, when indexParams is specified, it will create index as well
-      //CreateCollectionReq.CollectionSchema collectionSchema = client.createSchema();
-      this.vector = parameters.extractor().mappingPropertyValue(VECTOR_KEY);
-
-
-
       ConnectConfig connectConfig = ConnectConfig.builder()
               .uri(uri)
               .token(token)
@@ -126,6 +115,73 @@ public class MilvusSink extends StreamPipesDataSink{
 
       pool = new MilvusClientV2Pool(poolConfig, connectConfig);
       client = pool.getClient("client_name");
+
+      //create a dataBase
+      Map<String, String> properties = new HashMap<>();
+      properties.put(Constant.DATABASE_REPLICA_NUMBER,DATABASE_REPLICA_NUMBER_KEY);
+      CreateDatabaseReq createDatabaseReq = CreateDatabaseReq.builder()
+              .databaseName(DBNAME_KEY)
+              .properties(properties)
+              .build();
+      client.createDatabase(createDatabaseReq);
+      client.useDatabase(DBNAME_KEY);
+
+      // create a collection with schema, when indexParams is specified, it will create index as well
+      CreateCollectionReq.CollectionSchema collectionSchema = client.createSchema();
+      this.vector = parameters.extractor().mappingPropertyValue(VECTOR_KEY);
+      if(type.equals(DataType.String)) {
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.String).build());
+      }
+      else if(type.equals(DataType.FloatVector)){
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.FloatVector).build());
+      }
+      else if(type.equals(DataType.BinaryVector)){
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.BinaryVector).build());
+      }
+      else if (type.equals(DataType.Array)){
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Array).build());
+      }
+      else if (type.equals(DataType.BFloat16Vector)){
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.BFloat16Vector).build());
+      }
+      else if (type.equals(DataType.Int8)) {
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Int8).build());
+      }
+      else if (type.equals(DataType.Int16)) {
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Int16).build());
+      }
+      else if (type.equals(DataType.Int32)) {
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Int32).build());
+      }
+      else if (type.equals(DataType.Int64)) {
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Int64).build());
+      }
+      else if (type.equals(DataType.Bool)){
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Bool).build());
+      }
+      else if (type.equals(DataType.Double)) {
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Double).build());
+      }
+      else if (type.equals(DataType.Float)) {
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Float).build());
+      }
+      else if (type.equals(DataType.JSON)){
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.JSON).build());
+      }
+      else if (type.equals(DataType.VarChar)){
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.VarChar).build());
+      }
+      else if (type.equals(DataType.SparseFloatVector)){
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.SparseFloatVector).build());
+      }
+      else if (type.equals(DataType.None)){
+          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.None).build());
+      }
+      CreateCollectionReq createCollectionReq = CreateCollectionReq.builder()
+              .collectionName(COLLECTION_NAME_KEY)
+              .collectionSchema(collectionSchema)
+              .build();
+      client.createCollection(createCollectionReq);
   }
 
   @Override
@@ -140,11 +196,10 @@ public class MilvusSink extends StreamPipesDataSink{
           return;
       }
 
-      //List<Float> vectorList = new ArrayList<>();
-
       JsonObject vector = new JsonObject();
-      //从字段集合里取出各个字段，分别与从event中取出的数据配对
-
+      List<Object> vectorList = new ArrayList<>();
+      vectorList.add(event.getFieldBySelector(this.vector).getRawValue());
+      vector.add(this.vector, gson.toJsonTree(vectorList));
 
       InsertReq insertReq = InsertReq.builder()
               .collectionName(COLLECTION_NAME_KEY)
