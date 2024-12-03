@@ -37,180 +37,182 @@ import org.apache.streampipes.model.DataSinkType;
 import org.apache.streampipes.model.extensions.ExtensionAssetType;
 import org.apache.streampipes.model.graph.DataSinkDescription;
 import org.apache.streampipes.model.runtime.Event;
+import org.apache.streampipes.model.schema.EventProperty;
+import org.apache.streampipes.model.schema.EventPropertyList;
+import org.apache.streampipes.model.schema.EventPropertyNested;
+import org.apache.streampipes.model.schema.EventPropertyPrimitive;
+import org.apache.streampipes.model.schema.EventSchema;
 import org.apache.streampipes.model.schema.PropertyScope;
 import org.apache.streampipes.sdk.builder.DataSinkBuilder;
 import org.apache.streampipes.sdk.builder.StreamRequirementsBuilder;
 import org.apache.streampipes.sdk.helpers.EpRequirements;
 import org.apache.streampipes.sdk.helpers.Labels;
 import org.apache.streampipes.sdk.helpers.Locales;
+import org.apache.streampipes.vocabulary.XSD;
 import org.apache.streampipes.wrapper.params.compat.SinkParams;
 import org.apache.streampipes.wrapper.standalone.StreamPipesDataSink;
 
 import java.time.Duration;
 import java.util.*;
 
-public class MilvusSink extends StreamPipesDataSink{
+public class MilvusSink extends StreamPipesDataSink {
 
-  private static final String URI_KEY = "milvus_uri";
+    private static final String URI_KEY = "milvus_uri";
 
-  private static final String TOKEN_KEY = "milvus_token";
+    private static final String TOKEN_KEY = "milvus_token";
 
-  private static final String DBNAME_KEY = "milvus_dbname";
-  private static final String DATABASE_REPLICA_NUMBER_KEY = "database_replica_number";
+    private static final String DBNAME_KEY = "milvus_dbname";
+    private static final String DATABASE_REPLICA_NUMBER_KEY = "database_replica_number";
 
-  private static final String COLLECTION_NAME_KEY = "collection_name";
+    private static final String COLLECTION_NAME_KEY = "collection_name";
 
-  private static final String VECTOR_KEY = "vector";
+    private static final String VECTOR_KEY = "vector";
 
-  private final Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
-  private MilvusClientV2Pool pool;
-  private MilvusClientV2 client;
-  String vector;
-  DataType type;
-  //discussion里介绍一下milvus，贴一个milvus官网链接，pom修改依赖版本
-  //数据库，向量配置和表配置移到这里来
-  @Override
-  public DataSinkDescription declareModel() {
-      return DataSinkBuilder
-              .create("org.apache.streampipes.sinks.databases.jvm.milvus", 0)
-              .withLocales(Locales.EN)
-              .withAssets(ExtensionAssetType.DOCUMENTATION, ExtensionAssetType.ICON).
-              category(DataSinkType.DATABASE)
-              .requiredTextParameter(Labels.withId(URI_KEY))
-              .requiredTextParameter(Labels.withId(TOKEN_KEY),"root:Milvus")
-              .requiredTextParameter(Labels.withId(DBNAME_KEY))
-              .requiredTextParameter(Labels.withId(DATABASE_REPLICA_NUMBER_KEY),"2")
-              .requiredTextParameter(Labels.withId(COLLECTION_NAME_KEY))
-              .requiredStream(StreamRequirementsBuilder
-                      .create()
-                      .requiredPropertyWithUnaryMapping(EpRequirements.numberReq(),
-                              Labels.withId(VECTOR_KEY),
-                              PropertyScope.NONE)
-                      .build())
-              .build();
-  }
-  //数据库等的实例化放到初始化这里一起进行
-  @Override
-  public void onInvocation(SinkParams parameters,
-                           EventSinkRuntimeContext runtimeContext) throws SpRuntimeException, ClassNotFoundException, NoSuchMethodException, InterruptedException {
-      var extractor = parameters.extractor();
-      final String uri = extractor.singleValueParameter(URI_KEY, String.class);
-      final String token = extractor.singleValueParameter(TOKEN_KEY, String.class);
-      final String dbName = extractor.singleValueParameter(DBNAME_KEY, String.class);
+    private MilvusClientV2Pool pool;
+    private MilvusClientV2 client;
+    String vector;
+    DataType type;
 
-      ConnectConfig connectConfig = ConnectConfig.builder()
-              .uri(uri)
-              .token(token)
-              .dbName(dbName)
-              .build();
+    //discussion里介绍一下milvus，贴一个milvus官网链接，pom修改依赖版本
+    //数据库，向量配置和表配置移到这里来
+    @Override
+    public DataSinkDescription declareModel() {
+        return DataSinkBuilder
+                .create("org.apache.streampipes.sinks.databases.jvm.milvus", 0)
+                .withLocales(Locales.EN)
+                .withAssets(ExtensionAssetType.DOCUMENTATION, ExtensionAssetType.ICON).
+                category(DataSinkType.DATABASE)
+                .requiredTextParameter(Labels.withId(URI_KEY))
+                .requiredTextParameter(Labels.withId(TOKEN_KEY), "root:Milvus")
+                .requiredTextParameter(Labels.withId(DBNAME_KEY))
+                .requiredTextParameter(Labels.withId(DATABASE_REPLICA_NUMBER_KEY), "2")
+                .requiredTextParameter(Labels.withId(COLLECTION_NAME_KEY))
+                .requiredStream(StreamRequirementsBuilder
+                        .create()
+                        .requiredPropertyWithUnaryMapping(EpRequirements.numberReq(),
+                                Labels.withId(VECTOR_KEY),
+                                PropertyScope.NONE)
+                        .build())
+                .build();
+    }
 
-      PoolConfig poolConfig = PoolConfig.builder()
-              .maxIdlePerKey(10) // max idle clients per key
-              .maxTotalPerKey(20) // max total(idle + active) clients per key
-              .maxTotal(100) // max total clients for all keys
-              .maxBlockWaitDuration(Duration.ofSeconds(5L)) // getClient() will wait 5 seconds if no idle client available
-              .minEvictableIdleDuration(Duration.ofSeconds(10L)) // if number
-              .build();
+    //数据库等的实例化放到初始化这里一起进行
+    @Override
+    public void onInvocation(SinkParams parameters,
+                             EventSinkRuntimeContext runtimeContext) throws SpRuntimeException {
+        var extractor = parameters.extractor();
+        final String uri = extractor.singleValueParameter(URI_KEY, String.class);
+        final String token = extractor.singleValueParameter(TOKEN_KEY, String.class);
+        final String dbName = extractor.singleValueParameter(DBNAME_KEY, String.class);
 
-      pool = new MilvusClientV2Pool(poolConfig, connectConfig);
-      client = pool.getClient("client_name");
+        ConnectConfig connectConfig = ConnectConfig.builder()
+                .uri(uri)
+                .token(token)
+                .dbName(dbName)
+                .build();
 
-      //create a dataBase
-      Map<String, String> properties = new HashMap<>();
-      properties.put(Constant.DATABASE_REPLICA_NUMBER,DATABASE_REPLICA_NUMBER_KEY);
-      CreateDatabaseReq createDatabaseReq = CreateDatabaseReq.builder()
-              .databaseName(DBNAME_KEY)
-              .properties(properties)
-              .build();
-      client.createDatabase(createDatabaseReq);
-      client.useDatabase(DBNAME_KEY);
+        PoolConfig poolConfig = PoolConfig.builder()
+                .maxIdlePerKey(10) // max idle clients per key
+                .maxTotalPerKey(20) // max total(idle + active) clients per key
+                .maxTotal(100) // max total clients for all keys
+                .maxBlockWaitDuration(Duration.ofSeconds(5L)) // getClient() will wait 5 seconds if no idle client available
+                .minEvictableIdleDuration(Duration.ofSeconds(10L)) // if number
+                .build();
+        try {
+            pool = new MilvusClientV2Pool(poolConfig, connectConfig);
+            client = pool.getClient("client_name");
 
-      // create a collection with schema, when indexParams is specified, it will create index as well
-      CreateCollectionReq.CollectionSchema collectionSchema = client.createSchema();
-      this.vector = parameters.extractor().mappingPropertyValue(VECTOR_KEY);
-      if(type.equals(DataType.String)) {
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.String).build());
-      }
-      else if(type.equals(DataType.FloatVector)){
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.FloatVector).build());
-      }
-      else if(type.equals(DataType.BinaryVector)){
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.BinaryVector).build());
-      }
-      else if (type.equals(DataType.Array)){
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Array).build());
-      }
-      else if (type.equals(DataType.BFloat16Vector)){
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.BFloat16Vector).build());
-      }
-      else if (type.equals(DataType.Int8)) {
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Int8).build());
-      }
-      else if (type.equals(DataType.Int16)) {
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Int16).build());
-      }
-      else if (type.equals(DataType.Int32)) {
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Int32).build());
-      }
-      else if (type.equals(DataType.Int64)) {
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Int64).build());
-      }
-      else if (type.equals(DataType.Bool)){
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Bool).build());
-      }
-      else if (type.equals(DataType.Double)) {
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Double).build());
-      }
-      else if (type.equals(DataType.Float)) {
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.Float).build());
-      }
-      else if (type.equals(DataType.JSON)){
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.JSON).build());
-      }
-      else if (type.equals(DataType.VarChar)){
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.VarChar).build());
-      }
-      else if (type.equals(DataType.SparseFloatVector)){
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.SparseFloatVector).build());
-      }
-      else if (type.equals(DataType.None)){
-          collectionSchema.addField(AddFieldReq.builder().fieldName(this.vector).dataType(DataType.None).build());
-      }
-      CreateCollectionReq createCollectionReq = CreateCollectionReq.builder()
-              .collectionName(COLLECTION_NAME_KEY)
-              .collectionSchema(collectionSchema)
-              .build();
-      client.createCollection(createCollectionReq);
-  }
+            //create a dataBase
+            Map<String, String> properties = new HashMap<>();
+            properties.put(Constant.DATABASE_REPLICA_NUMBER, DATABASE_REPLICA_NUMBER_KEY);
+            CreateDatabaseReq createDatabaseReq = CreateDatabaseReq.builder()
+                    .databaseName(DBNAME_KEY)
+                    .properties(properties)
+                    .build();
+            client.createDatabase(createDatabaseReq);
+            client.useDatabase(DBNAME_KEY);
 
-  @Override
-  public void onDetach() {
-      client.close();
-      pool.close();
-  }
-  //专心做插入操作
-  @Override
-  public void onEvent(Event event) {
-      if(event == null){
-          return;
-      }
+            EventSchema schema = parameters.getModel().getInputStreams().get(0).getEventSchema();
 
-      JsonObject vector = new JsonObject();
-      List<Object> vectorList = new ArrayList<>();
-      vectorList.add(event.getFieldBySelector(this.vector).getRawValue());
-      vector.add(this.vector, gson.toJsonTree(vectorList));
+            // create a collection with schema, when indexParams is specified, it will create index as well
+            CreateCollectionReq.CollectionSchema collectionSchema = client.createSchema();
+            this.vector = parameters.extractor().mappingPropertyValue(VECTOR_KEY);
+            extractEventProperties(schema.getEventProperties(), "", collectionSchema);
 
-      InsertReq insertReq = InsertReq.builder()
-              .collectionName(COLLECTION_NAME_KEY)
-              .data(Collections.singletonList(vector))
-              .build();
-      client.insert(insertReq);
+            CreateCollectionReq createCollectionReq = CreateCollectionReq.builder()
+                    .collectionName(COLLECTION_NAME_KEY)
+                    .collectionSchema(collectionSchema)
+                    .build();
+            client.createCollection(createCollectionReq);
+        } catch (Exception e) {
+            //todo add log
+            throw new RuntimeException(e);
+        }
 
-      // release collection COLLECTION_NAME_KEY
-      ReleaseCollectionReq releaseCollectionReq = ReleaseCollectionReq.builder()
-              .collectionName(COLLECTION_NAME_KEY)
-              .build();
-      client.releaseCollection(releaseCollectionReq);
-  }
+    }
+
+    @Override
+    public void onDetach() {
+        client.close();
+        pool.close();
+    }
+
+    //专心做插入操作
+    @Override
+    public void onEvent(Event event) {
+        if (event == null) {
+            return;
+        }
+
+        JsonObject vector = new JsonObject();
+        List<Object> vectorList = new ArrayList<>();
+        vectorList.add(event.getFieldBySelector(this.vector).getRawValue());
+        vector.add(this.vector, gson.toJsonTree(vectorList));
+
+        InsertReq insertReq = InsertReq.builder()
+                .collectionName(COLLECTION_NAME_KEY)
+                .data(Collections.singletonList(vector))
+                .build();
+        client.insert(insertReq);
+
+        // release collection COLLECTION_NAME_KEY
+        ReleaseCollectionReq releaseCollectionReq = ReleaseCollectionReq.builder()
+                .collectionName(COLLECTION_NAME_KEY)
+                .build();
+        client.releaseCollection(releaseCollectionReq);
+    }
+
+    private void extractEventProperties(List<EventProperty> properties, String preProperty,
+                                        CreateCollectionReq.CollectionSchema collectionSchema)
+            throws SpRuntimeException {
+
+        for (EventProperty property : properties) {
+            final String name = preProperty + property.getRuntimeName();
+            if (property instanceof EventPropertyNested) {
+                extractEventProperties(((EventPropertyNested) property).getEventProperties(),
+                        name + "_", collectionSchema);
+
+            } else {
+                if (property instanceof EventPropertyPrimitive) {
+                    final String uri = ((EventPropertyPrimitive) property).getRuntimeType();
+                    if (uri.equals(XSD.INTEGER.toString())) {
+                        collectionSchema.addField(AddFieldReq.builder().fieldName(name).dataType(DataType.Int32).build());
+                    } else if (uri.equals(XSD.LONG.toString())) {
+                        collectionSchema.addField(AddFieldReq.builder().fieldName(name).dataType(DataType.Int64).build());
+                    } else if (uri.equals(XSD.FLOAT.toString())) {
+                        collectionSchema.addField(AddFieldReq.builder().fieldName(name).dataType(DataType.Float).build());
+                    } else if (uri.equals(XSD.DOUBLE.toString())) {
+                        collectionSchema.addField(AddFieldReq.builder().fieldName(name).dataType(DataType.Double).build());
+                    } else if (uri.equals(XSD.BOOLEAN.toString())) {
+                        collectionSchema.addField(AddFieldReq.builder().fieldName(name).dataType(DataType.Bool).build());
+                    }
+                } else {
+                    collectionSchema.addField(AddFieldReq.builder().fieldName(name).dataType(DataType.String).build());
+                }
+            }
+
+        }
+    }
 }
